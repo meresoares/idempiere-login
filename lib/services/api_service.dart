@@ -5,7 +5,7 @@ import '../models/role.dart';
 import '../models/warehouse.dart';
 
 class ApiService {
-  final String _baseUrl = 'https://idempiere-api.monalisa.com.py:8443';
+  final String _baseUrl = '';
 
   // Función para obtener el token de autorización en un solo paso
   Future<String> loginOneStep({
