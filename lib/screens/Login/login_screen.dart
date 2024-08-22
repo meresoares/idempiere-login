@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:login_flutter/screens/Login/login_rol_screen.dart';
+import 'package:login_flutter/screens/home_screen.dart';
+import 'package:login_flutter/screens/role_screen.dart';
+import 'package:login_flutter/services/api_service.dart';
+import 'package:login_flutter/services/client_store.dart'; // Cambia esto si es necesario
+import 'package:login_flutter/services/role_store.dart';
+import 'package:login_flutter/widgets/checkbox.widget.dart';
+import 'package:login_flutter/widgets/login_button.widget.dart';
+import 'package:login_flutter/widgets/logo.widget.dart';
+import 'package:login_flutter/widgets/textfield.widget.dart';
+import 'package:login_flutter/widgets/title.widget.dart';
 
 class Login extends StatefulWidget {
+  const Login({super.key});
+
   @override
   _LoginState createState() => _LoginState();
 }
@@ -9,21 +20,68 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  String? _selectedLanguage = 'es_PY';
+
+  // Obtén las instancias desde una clase de gestión de estado o inyección de dependencias
+  final AuthStore authStore = AuthStore();  // Debes pasar esto desde un gestor
+  final RoleStore roleStore = RoleStore(AuthStore());
+  final ApiService apiService = ApiService();
+
   bool _selectRole = false;
   bool _rememberMe = false;
+  bool _obscureText = true;
+  bool _isLoading = false;
 
-  void _login() {
-    if (_selectRole) {
-      // Navegar a la pantalla de selección de rol y organización
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => LoginRol()),
+  void _login() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await authStore.login(
+        _usernameController.text,
+        _passwordController.text,
       );
-    } else {
-      // Navegar directamente a la pantalla home
-      Navigator.pushReplacementNamed(context, '/home');
+
+    // Verifica si el token y los clientes fueron cargados
+    print('Token después del login en LoginScreen: ${authStore.token}');
+    print('Clientes cargados en LoginScreen: ${authStore.clients}');
+
+      if (_selectRole) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RoleScreen(
+              authStore: authStore,
+              roleStore: roleStore,
+              apiService: apiService,
+            ),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al iniciar sesión: ${e.toString()}')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
+
+  void _togglePasswordView() {
+    setState(() {
+      _obscureText = !_obscureText;
+    });
   }
 
   @override
@@ -44,100 +102,45 @@ class _LoginState extends State<Login> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const SizedBox(height: 24),
-                    Image.asset(
-                      'assets/images/monalisa_logo.webp',
-                      height: 100,
-                    ),
+                    const Logo(imagePath: 'assets/images/monalisa_logo.webp'),
                     const SizedBox(height: 24),
-                    const Text(
-                      "Entrar al sistema",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextField(
+                    const TitleText(text: 'Entrar al sistema'),
+                    const SizedBox(height: 24),
+                    CustomTextField(
                       controller: _usernameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Usuario',
-                        border: OutlineInputBorder(),
-                      ),
+                      labelText: 'Usuario',
                     ),
                     const SizedBox(height: 16),
-                    TextField(
+                    CustomTextField(
                       controller: _passwordController,
-                      decoration: const InputDecoration(
-                        labelText: 'Contraseña',
-                        border: OutlineInputBorder(),
-                        suffixIcon: Icon(Icons.visibility),
-                      ),
-                      obscureText: true,
+                      labelText: 'Contraseña',
+                      obscureText: _obscureText,
+                      onToggleVisibility: _togglePasswordView,
+                      showVisibilityIcon: true,
                     ),
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: _selectedLanguage,
-                      decoration: const InputDecoration(
-                        labelText: 'Lenguaje',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: [
-                        const DropdownMenuItem(
-                          child: Text('Español (Colombia)'),
-                          value: 'es_CO',
-                        ),
-                        const DropdownMenuItem(
-                          child: Text('Español (Paraguay)'),
-                          value: 'es_PY',
-                        ),
-                        const DropdownMenuItem(
-                          child: Text('English'),
-                          value: 'en_US',
-                        ),
-                      ],
+                    CustomCheckbox(
+                      value: _selectRole,
                       onChanged: (value) {
                         setState(() {
-                          _selectedLanguage = value!;
+                          _selectRole = value!;
                         });
                       },
+                      label: 'Seleccionar rol',
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _selectRole,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectRole = value!;
-                            });
-                          },
-                        ),
-                        const Text('Seleccionar rol'),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _rememberMe,
-                          onChanged: (value) {
-                            setState(() {
-                              _rememberMe = value!;
-                            });
-                          },
-                        ),
-                        const Text('Recordar mis datos'),
-                      ],
-                    ),
+                    /*CustomCheckbox(
+                      value: _rememberMe,
+                      onChanged: (value) {
+                        setState(() {
+                          _rememberMe = value!;
+                        });
+                      },
+                      label: 'Recordar mis datos',
+                    ), */
                     const SizedBox(height: 24),
-                    ElevatedButton(
+                    LoginButtons(
                       onPressed: _login,
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.check),
-                          SizedBox(width: 8),
-                          Text('Inicia sesión')
-                        ],
-                      ),
+                      isLoading: _isLoading,
                     ),
                   ],
                 ),
