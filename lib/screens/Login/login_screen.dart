@@ -27,7 +27,6 @@ class _LoginState extends State<Login> {
   final ApiService apiService = ApiService();
 
   bool _selectRole = false;
-  bool _rememberMe = false;
   bool _obscureText = true;
   bool _isLoading = false;
 

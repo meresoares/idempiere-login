@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:login_flutter/models/client_model.dart';
-import '../models/login_response_model.dart';
 
 class AuthService with ChangeNotifier {
   final String _baseUrl = 'http://localhost:3000';
