@@ -48,6 +48,6 @@ app.*.map.json
 /build/
 /dist/
 /node_modules/
-/proxy-server/
+proxy-server
 
 
