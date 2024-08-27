@@ -39,15 +39,8 @@ class ApiService {
     } else {
       throw APIException('Error al obtener roles api', response.statusCode);
     }
-    /* if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
-      return data.map((json) => Role.fromJson(json)).toList();
-    } else {
-      throw APIException('Error al obtener roles', response.statusCode);
-    } */
   }
 
-//Future<List<Organization>>
   Future<List<Organization>> fetchOrganizations(
       String authToken, String clientId, String roleId) async {
     final String endpoint =
@@ -137,13 +130,6 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      /* final Map<String, dynamic> data =
-          jsonDecode(utf8.decode(response.bodyBytes));
-      final List<Language> languages = data.entries.map((entry) {
-        return Language({'Name': entry.value});
-      }).toList();
-
-      return languages; */
       final Map<String, dynamic> data =
           jsonDecode(utf8.decode(response.bodyBytes));
 
@@ -161,7 +147,8 @@ class ApiService {
   }
 
   // Login normal
-  Future<String> login({
+  Future<Map<String, dynamic>> 
+  login({
     required String username,
     required String password,
   }) async {
@@ -180,9 +167,7 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
-      final String token = data['token'];
-      // await saveToken(token);
-      return token;
+      return data;
     } else {
       final Map<String, dynamic> errorData = jsonDecode(response.body);
       throw Exception('Failed to login: ${errorData['detail']}');
@@ -199,7 +184,7 @@ class ApiService {
     required int warehouseId,
     required String language,
   }) async {
-    final url = Uri.parse('$_baseUrl/tokens');
+    final url = Uri.parse('$_baseUrl/api/v1/auth/tokens');
     final headers = {'Content-Type': 'application/json'};
     final body = jsonEncode({
       'userName': userName,

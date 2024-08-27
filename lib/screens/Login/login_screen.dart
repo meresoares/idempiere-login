@@ -1,80 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:login_flutter/screens/home_screen.dart';
-import 'package:login_flutter/screens/role_screen.dart';
-import 'package:login_flutter/services/api_service.dart';
-import 'package:login_flutter/services/client_store.dart'; // Cambia esto si es necesario
-import 'package:login_flutter/services/role_store.dart';
+import 'package:login_flutter/screens/home/home_screen.dart';
+import 'package:login_flutter/screens/login/role_screen.dart';
+import 'package:login_flutter/services/login_command.dart';
+import 'package:login_flutter/services/stores/auth_store.dart';
 import 'package:login_flutter/widgets/checkbox.widget.dart';
 import 'package:login_flutter/widgets/login_button.widget.dart';
 import 'package:login_flutter/widgets/logo.widget.dart';
 import 'package:login_flutter/widgets/textfield.widget.dart';
 import 'package:login_flutter/widgets/title.widget.dart';
+import 'package:get_it/get_it.dart';
 
-class Login extends StatefulWidget {
-  const Login({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  _LoginState createState() => _LoginState();
+  _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _LoginState extends State<Login> {
+class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // Obtén las instancias desde una clase de gestión de estado o inyección de dependencias
-  final AuthStore authStore = AuthStore();  // Debes pasar esto desde un gestor
-  final RoleStore roleStore = RoleStore(AuthStore());
-  final ApiService apiService = ApiService();
+  // Inicializa las instancias necesarias
+  final AuthStore _authStore = GetIt.I<AuthStore>();
+  late LoginCommand _loginCommand;
 
   bool _selectRole = false;
   bool _obscureText = true;
   bool _isLoading = false;
 
-  void _login() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await authStore.login(
-        _usernameController.text,
-        _passwordController.text,
-      );
-
-    // Verifica si el token y los clientes fueron cargados
-    print('Token después del login en LoginScreen: ${authStore.token}');
-    print('Clientes cargados en LoginScreen: ${authStore.clients}');
-
-      if (_selectRole) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RoleScreen(
-              authStore: authStore,
-              roleStore: roleStore,
-              apiService: apiService,
-            ),
-          ),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
-        );
-      }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al iniciar sesión: ${e.toString()}')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    _loginCommand = LoginCommand(_authStore);
   }
 
   void _togglePasswordView() {
@@ -127,18 +85,9 @@ class _LoginState extends State<Login> {
                       },
                       label: 'Seleccionar rol',
                     ),
-                    /*CustomCheckbox(
-                      value: _rememberMe,
-                      onChanged: (value) {
-                        setState(() {
-                          _rememberMe = value!;
-                        });
-                      },
-                      label: 'Recordar mis datos',
-                    ), */
                     const SizedBox(height: 24),
                     LoginButtons(
-                      onPressed: _login,
+                      onLogin: _login,
                       isLoading: _isLoading,
                     ),
                   ],
@@ -148,6 +97,53 @@ class _LoginState extends State<Login> {
           ),
         ),
       ),
+    );
+  }
+
+  void _login() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _loginCommand.execute(
+        username: _usernameController.text,
+        password: _passwordController.text,
+      );
+
+      if (_selectRole) {
+        _navigateToRoleScreen();
+      } else {
+        _navigateToHomeScreen();
+      }
+    } catch (e) {
+      _showError(e);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _navigateToRoleScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const RolScreen(),
+      ),
+    );
+  }
+
+  void _navigateToHomeScreen() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
+  }
+
+  void _showError(dynamic error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al iniciar sesión: $error')),
     );
   }
 }

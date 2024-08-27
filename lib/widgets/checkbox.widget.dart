@@ -6,11 +6,11 @@ class CustomCheckbox extends StatelessWidget {
   final String label;
 
   const CustomCheckbox({
-    Key? key,
+    super.key,
     required this.value,
     required this.onChanged,
     required this.label,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

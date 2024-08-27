@@ -1,17 +1,25 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:login_flutter/screens/role_screen.dart';
-import 'package:login_flutter/services/api_service.dart';
-import 'package:login_flutter/services/client_store.dart';
-import 'package:login_flutter/services/role_store.dart';
-import 'screens/Login/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'package:login_flutter/screens/login/role_screen.dart';
+import 'package:login_flutter/services/injection/dependency_injection.dart';
+import 'package:login_flutter/services/stores/auth_store.dart';
+import 'screens/login/login_screen.dart';
+import 'screens/home/home_screen.dart';
 
 void main() {
+  setupDependencies();
   // Ignorar errores SSL solo en desarrollo
   HttpOverrides.global = MyHttpOverrides();
-  final authStore = AuthStore();
-    runApp(MyApp(authStore: authStore,));
+  final authStore = sl.get<AuthStore>();
+  debugShowCheckedModeBanner:
+  false;
+  debugDisableErrorBoundaries:
+  false;
+  runApp(
+    MyApp(
+      authStore: authStore,
+    ),
+  );
 }
 
 // Clase para sobrescribir el manejo de SSL
@@ -26,10 +34,9 @@ class MyHttpOverrides extends HttpOverrides {
 }
 
 class MyApp extends StatelessWidget {
-  
-   final AuthStore authStore;
+  final AuthStore authStore;
 
-  MyApp({required this.authStore});
+  const MyApp({super.key, required this.authStore});
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +48,9 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       routes: {
-        '/': (context) => const Login(), // Pantalla de inicio de sesión
-        '/home': (context) => HomeScreen(), // Pantalla principal
-        '/role-selection': (context) => RoleScreen(authStore: AuthStore(), apiService: ApiService(), roleStore: RoleStore(authStore),),
+        '/': (context) => const LoginScreen(), // Pantalla de inicio de sesión
+        '/home': (context) => const HomeScreen(), // Pantalla principal
+        '/role-selection': (context) => const RolScreen(),
       },
     );
   }

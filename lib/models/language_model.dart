@@ -1,3 +1,4 @@
+// ignore: implementation_imports
 import 'package:idempiere_rest/src/model_base.dart';
 
 class Language extends ModelBase {
