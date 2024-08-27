@@ -8,7 +8,8 @@ Esta es una aplicación móvil desarrollada en Flutter que se integra con el bac
 La autenticación exitosa devuelve un token de autorización Bearer, que se utiliza para acceder a las funciones protegidas de la aplicación.
 
 Documentación Utilizada
-Este proyecto utiliza los REST Web Services de iDempiere https://wiki.idempiere.org/en/REST_Web_Services#Login_in_to_get_your_Bearer_authorization_token
+Este proyecto utiliza los REST Web Services de iDempiere 
+https://wiki.idempiere.org/en/REST_Web_Services#Login_in_to_get_your_Bearer_authorization_token
 para el manejo de la autenticación y obtención del token de autorización Bearer.
 
 Requisito
